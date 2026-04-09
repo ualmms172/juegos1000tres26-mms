@@ -1,0 +1,44 @@
+name: "Tarea interna"
+description: "Registrar trabajo tecnico o tareas de mantenimiento"
+title: "[Task]: "
+labels:
+  - chore
+body:
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Que se necesita hacer.
+      placeholder: "Actualizar dependencias de..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alcance
+    attributes:
+      label: Alcance
+      description: Que incluye y que no incluye la tarea.
+      placeholder: "Incluye backend y pruebas unitarias..."
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de finalizacion
+      description: Como sabremos que esta terminada.
+      placeholder: |
+        - [ ] Compila correctamente
+        - [ ] Tests verdes
+        - [ ] Documentacion actualizada
+    validations:
+      required: true
+
+  - type: dropdown
+    id: estimacion
+    attributes:
+      label: Estimacion
+      options:
+        - XS (<= 2h)
+        - S (medio dia)
+        - M (1 dia)
+        - L (2-3 dias)
+        - XL (1 semana)
