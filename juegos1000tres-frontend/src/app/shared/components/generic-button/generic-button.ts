@@ -1,10 +1,10 @@
-import { NgClass, NgIf } from '@angular/common';
+import { NgClass, NgIf, NgTemplateOutlet } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'generic-button',
-  imports: [NgClass, NgIf, RouterLink],
+  imports: [NgClass, NgIf, NgTemplateOutlet, RouterLink],
   templateUrl: './generic-button.html',
   styleUrl: './generic-button.css',
 })

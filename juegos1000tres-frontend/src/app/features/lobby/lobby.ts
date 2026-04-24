@@ -34,7 +34,7 @@ export class Lobby implements OnInit, OnDestroy {
 
   juegosDisponibles = [{ id: 'space-invaders', nombre: 'Space Invaders' }];
 
-  private readonly apiBase = 'http://localhost:8082';
+  private readonly apiBase = 'http://localhost:8083';
   private polling?: Subscription;
 
   constructor(
