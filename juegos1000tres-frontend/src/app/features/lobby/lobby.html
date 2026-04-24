@@ -1,70 +1,126 @@
 <section class="lobby" *ngIf="viewMode === 'lobby'">
 	<h1>Salas</h1>
 
-	<button class="primary" (click)="crearSala()">Crear sala</button>
+	<generic-button color="red" (click)="crearSala()">Crear sala</generic-button>
 
 	<div class="join">
 		<label for="uuid">UUID</label>
 		<input id="uuid" type="text" placeholder="123456" [(ngModel)]="uuidInput" />
-		<button class="secondary" (click)="unirseSala()">Unirse a sala</button>
+		<generic-button color="gray" (click)="unirseSala()">Unirse a sala</generic-button>
 	</div>
 
 	<p class="error" *ngIf="errorUuid">{{ errorUuid }}</p>
 </section>
 
 <section class="sala" *ngIf="viewMode === 'sala'" [class.jugando]="juegoActual === 'space-invaders'">
-	<div class="sala-header">
-		<span class="sala-id">Sala {{ uuidActual }}</span>
-	</div>
-
-	<div class="sala-body">
-		<div class="jugadores">
-			<h2>Jugadores</h2>
-			<div class="jugador" *ngFor="let jugador of jugadores">
-				<label>
-					<input
-						type="radio"
-						name="pantalla"
-						[value]="jugador.id"
-						[(ngModel)]="pantallaId"
-						(change)="cambiarPantalla(jugador.id)"
-						[disabled]="!esHost"
-					/>
-					<span>{{ jugador.nombre }}</span>
-				</label>
+	<div class="sala-layout">
+		<aside class="sala-sidebar">
+			<div class="sala-tag">
+				<span>Sala</span>
+				<strong>{{ uuidActual }}</strong>
 			</div>
-			<div class="jugador jugador-ninguno">
-				<label>
-					<input
-						type="radio"
-						name="pantalla"
-						[value]="pantallaNingunoId"
-						[(ngModel)]="pantallaId"
-						(change)="cambiarPantalla(pantallaNingunoId)"
-						[disabled]="!esHost"
-					/>
-					<span>Ninguno</span>
-				</label>
+			<div class="sala-info">
+				<p class="info-label">Usuario conectado</p>
+				<p class="info-value">{{ jugadorId || '---' }}</p>
 			</div>
-			<p class="nota" *ngIf="!esHost">Solo el creador puede cambiar la pantalla.</p>
-		</div>
+			<div class="sala-info">
+				<p class="info-label">Creador de la sala</p>
+				<p class="info-value">{{ hostId || '---' }}</p>
+			</div>
+			<div class="sala-reservado">
+				<p>Espacio reservado para nuevas secciones</p>
+			</div>
+			<div class="salir-wrap">
+				<generic-button color="red" (click)="salir()">Salir</generic-button>
+			</div>
+		</aside>
 
-		<div class="juegos">
-			<h2>Juegos disponibles</h2>
-			<ul>
-				<li *ngFor="let juego of juegosDisponibles">
-					<span>{{ juego.nombre }}</span>
-					<button
-						class="secondary"
-						(click)="iniciarJuego(juego.id)"
-						[disabled]="!esHost"
-					>
-						Iniciar
-					</button>
-				</li>
-			</ul>
-			<p class="nota" *ngIf="!esHost">Solo el creador puede iniciar un juego.</p>
-		</div>
+		<main class="sala-main">
+			<h1 class="sala-title">Jeugos1000tres</h1>
+
+			<div class="sala-content">
+				<section class="jugadores">
+					<div class="section-header">
+						<h2>Jugadores</h2>
+						<span class="host-indicator" *ngIf="esHost">Eres el creador</span>
+					</div>
+					<table class="jugadores-table">
+						<thead>
+							<tr>
+								<th>Pantalla</th>
+								<th>Jugador</th>
+								<th>Victorias</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let jugador of jugadores">
+								<td>
+									<label class="radio-wrap">
+										<input
+											type="radio"
+											name="pantalla"
+											[value]="jugador.id"
+											[(ngModel)]="pantallaId"
+											(change)="cambiarPantalla(jugador.id)"
+											[disabled]="!esHost"
+										/>
+									</label>
+								</td>
+								<td>{{ jugador.nombre }}</td>
+								<td class="wins">0</td>
+							</tr>
+							<tr class="jugador-ninguno">
+								<td>
+									<label class="radio-wrap">
+										<input
+											type="radio"
+											name="pantalla"
+											[value]="pantallaNingunoId"
+											[(ngModel)]="pantallaId"
+											(change)="cambiarPantalla(pantallaNingunoId)"
+											[disabled]="!esHost"
+										/>
+									</label>
+								</td>
+								<td>Ninguno</td>
+								<td class="wins">0</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="nota" *ngIf="!esHost">Solo el creador puede cambiar la pantalla.</p>
+				</section>
+
+				<section class="juegos">
+					<h2>Juegos disponibles</h2>
+					<ul class="juegos-list">
+						<li *ngFor="let juego of juegosDisponibles">
+							<button
+								class="juego-link"
+								(click)="iniciarJuego(juego.id)"
+								[disabled]="!esHost"
+							>
+								{{ juego.nombre }}
+							</button>
+							<img
+								class="juego-icon"
+								[src]="
+									juego.id === 'space-invaders'
+										? '/img/lobby/no-creen-needed.png'
+										: '/img/lobby/creen-needed.png'
+								"
+								[alt]="
+									juego.id === 'space-invaders'
+										? 'No requiere pantalla'
+										: 'Requiere pantalla'
+								"
+							/>
+						</li>
+					</ul>
+					<p class="nota" *ngIf="!esHost">Solo el creador puede iniciar un juego.</p>
+				</section>
+			</div>
+			<p class="error" *ngIf="errorUuid">{{ errorUuid }}</p>
+		</main>
 	</div>
 
 	<div class="juego" *ngIf="juegoActual === 'space-invaders'">
@@ -79,5 +135,4 @@
 		</ng-container>
 	</div>
 
-	<button class="salir" (click)="salir()">Salir</button>
 </section>

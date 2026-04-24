@@ -5,10 +5,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
+import { GenericButton } from '../../shared/components/generic-button/generic-button';
 
 @Component({
   selector: 'app-lobby',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GenericButton],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })

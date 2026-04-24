@@ -1,5 +1,7 @@
 .generic-button {
 	align-items: center;
+	appearance: none;
+	border: none;
 	border-radius: 10px;
 	box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
 	color: #101010;
@@ -8,6 +10,7 @@
 	font-family: "Space Grotesk", "Poppins", "Segoe UI", sans-serif;
 	font-size: 1rem;
 	font-weight: 700;
+	font: inherit;
 	justify-content: center;
 	letter-spacing: 0.02em;
 	min-width: 140px;
