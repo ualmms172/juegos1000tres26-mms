@@ -3,6 +3,8 @@ package com.juegos1000tres.juegos1000tres_backend.juegos.PruebaWebSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import org.springframework.stereotype.Service;
 
@@ -11,17 +13,16 @@ import com.juegos1000tres.juegos1000tres_backend.comunicacion.Recibo;
 import com.juegos1000tres.juegos1000tres_backend.comunicacion.Traductor;
 import com.juegos1000tres.juegos1000tres_backend.comunicacion.implementaciones.WebSocketConexion;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-
-@Service
+// NOTA: Esta clase fue el punto de entrada singleton del juego PruebaWebSocket.
+// Ha sido reemplazada por PruebaWebSocketManager, que gestiona instancias per-sala.
+// Se conserva como referencia histórica pero ya no es un @Service de Spring.
 public class PruebaWebSocketService {
 
     private static final String PAYLOAD_VACIO = "{}";
     private static final long SLEEP_MS = 40L;
 
-    private static final String SALA_ID_JUGADORES = "prueba-websocket-jugadores";
-    private static final String SALA_ID_PANTALLA = "prueba-websocket-pantalla";
+    private static final String SALA_ID_JUGADORES = System.getenv().getOrDefault("PRUEBA_WEBSOCKET_SALA_JUGADORES", "prueba-websocket-jugadores");
+    private static final String SALA_ID_PANTALLA = System.getenv().getOrDefault("PRUEBA_WEBSOCKET_SALA_PANTALLA", "prueba-websocket-pantalla");
 
     private final WebSocketConexion conexionJugadores;
     private final WebSocketConexion conexionPantalla;

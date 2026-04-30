@@ -1,0 +1,54 @@
+<section class="prueba-websocket-root">
+  <header class="pw-header">
+    <div>
+      <h3>Prueba WebSocket</h3>
+      <p class="pw-subtitle">
+        {{ esPantalla ? 'Pantalla compartida' : 'Jugador' }} en sala {{ uuid || 'prueba-websocket' }}
+      </p>
+    </div>
+    <span class="pw-status">{{ estadoConexion }}</span>
+  </header>
+
+  <ng-container *ngIf="!esPantalla; else pantallaTpl">
+    <div class="pw-form">
+      <label>
+        Nombre
+        <input type="text" [(ngModel)]="nombreJugador" />
+      </label>
+
+      <label>
+        Texto
+        <textarea
+          [(ngModel)]="texto"
+          rows="4"
+          placeholder="Escribe y pulsa Enter o Enviar"
+          (keydown.enter)="$event.preventDefault(); enviarTexto()"
+        ></textarea>
+      </label>
+
+      <button type="button" (click)="enviarTexto()">Enviar texto</button>
+    </div>
+
+    <div class="pw-history">
+      <h4>Historial global</h4>
+      <ul>
+        <li *ngFor="let mensaje of mensajes">{{ mensaje }}</li>
+        <li *ngIf="!mensajes.length" class="muted">Sin mensajes todavía.</li>
+      </ul>
+    </div>
+  </ng-container>
+
+  <ng-template #pantallaTpl>
+    <div class="pw-board">
+      <h4>Estado de pantalla</h4>
+      <article *ngFor="let jugador of jugadores" class="pw-player-card">
+        <h5>{{ jugador.nombreJugador || 'Jugador' }}</h5>
+        <p *ngIf="!jugador.palabras.length" class="muted">Sin palabras aun.</p>
+        <ul *ngIf="jugador.palabras.length">
+          <li *ngFor="let palabra of jugador.palabras">{{ palabra }}</li>
+        </ul>
+      </article>
+      <p *ngIf="!jugadores.length" class="muted">Esperando actividad...</p>
+    </div>
+  </ng-template>
+</section>

@@ -9,6 +9,7 @@ const COMANDO_ESTADO_PANTALLA = "ESTADO_PANTALLA";
 
 const estadoConexion = document.getElementById("estadoConexion");
 const jugadoresBoard = document.getElementById("jugadoresBoard");
+const SALA_ID = obtenerSalaId();
 
 let traductor = null;
 let recepcionActiva = false;
@@ -54,7 +55,21 @@ function obtenerUrlCanalPantalla() {
   }
 
   const host = window.location.hostname || "127.0.0.1";
-  return `ws://${host}:8091/ws/salas/prueba-websocket-pantalla`;
+  return `ws://${host}:8091/ws/salas/${encodeURIComponent(SALA_ID)}/pantalla`;
+}
+
+function obtenerSalaId() {
+  const params = new URLSearchParams(window.location.search || "");
+  const querySalaId = params.get("salaId");
+  if (typeof querySalaId === "string" && querySalaId.trim()) {
+    return querySalaId.trim();
+  }
+
+  if (typeof window.PRUEBA_WEBSOCKET_SALA_ID === "string" && window.PRUEBA_WEBSOCKET_SALA_ID.trim()) {
+    return window.PRUEBA_WEBSOCKET_SALA_ID.trim();
+  }
+
+  return "prueba-websocket";
 }
 
 function renderizarJugadores(jugadores) {

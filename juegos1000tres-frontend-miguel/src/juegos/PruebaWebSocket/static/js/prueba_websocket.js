@@ -17,6 +17,7 @@ const mensajesList = document.getElementById("mensajesList");
 
 const STORAGE_ID = "prueba_ws_jugador_id";
 const STORAGE_NAME = "prueba_ws_nombre";
+const SALA_ID = obtenerSalaId();
 
 let traductor = null;
 let recepcionActiva = false;
@@ -77,7 +78,7 @@ function setEstado(texto, esError = false) {
 }
 
 function obtenerJugadorId() {
-  const actual = localStorage.getItem(STORAGE_ID);
+  const actual = localStorage.getItem(`${STORAGE_ID}:${SALA_ID}`);
   if (actual && actual.trim()) {
     return actual;
   }
@@ -86,8 +87,22 @@ function obtenerJugadorId() {
     ? window.crypto.randomUUID()
     : `jug-${Date.now()}-${Math.floor(Math.random() * 99999)}`;
 
-  localStorage.setItem(STORAGE_ID, nuevo);
+  localStorage.setItem(`${STORAGE_ID}:${SALA_ID}`, nuevo);
   return nuevo;
+}
+
+function obtenerSalaId() {
+  const params = new URLSearchParams(window.location.search || "");
+  const querySalaId = params.get("salaId");
+  if (typeof querySalaId === "string" && querySalaId.trim()) {
+    return querySalaId.trim();
+  }
+
+  if (typeof window.PRUEBA_WEBSOCKET_SALA_ID === "string" && window.PRUEBA_WEBSOCKET_SALA_ID.trim()) {
+    return window.PRUEBA_WEBSOCKET_SALA_ID.trim();
+  }
+
+  return "prueba-websocket";
 }
 
 function obtenerNombreInicial() {
@@ -128,7 +143,7 @@ function obtenerUrlCanalJugadores() {
   }
 
   const host = window.location.hostname || "127.0.0.1";
-  return `ws://${host}:8091/ws/salas/prueba-websocket-jugadores`;
+  return `ws://${host}:8091/ws/salas/${encodeURIComponent(SALA_ID)}/jugadores`;
 }
 
 async function iniciar() {

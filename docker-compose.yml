@@ -24,6 +24,7 @@ services:
     command: mvn -DskipTests spring-boot:run
     ports:
       - "8083:8082"
+      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/juegos1000tres
       SPRING_DATASOURCE_USERNAME: juegos_user

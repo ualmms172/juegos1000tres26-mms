@@ -1,0 +1,87 @@
+.prueba-websocket-root {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  color: #e5eefc;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.pw-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pw-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.pw-subtitle,
+.muted {
+  color: #94a3b8;
+}
+
+.pw-status {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  font-size: 0.9rem;
+}
+
+.pw-form,
+.pw-history,
+.pw-board {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.pw-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.pw-form input,
+.pw-form textarea {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.7);
+  color: #f8fafc;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+}
+
+.pw-form button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: white;
+  cursor: pointer;
+}
+
+.pw-history ul,
+.pw-board ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.pw-player-card {
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.pw-player-card h5 {
+  margin: 0 0 8px;
+}

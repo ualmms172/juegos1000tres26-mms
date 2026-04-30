@@ -26,6 +26,7 @@ public class ApiConexion implements Conexion<String> {
     private static final String PAYLOAD_INICIAL = ComunicacionRuntimeConfig.apiPayloadInicial();
 
     private final String salaId;
+    private final String juego; // optional game name segment
     private final String endpointSala;
     private final String endpointActualizacionesSala;
     private final int puerto;
@@ -35,13 +36,23 @@ public class ApiConexion implements Conexion<String> {
     private volatile String ultimoMensaje;
 
     public ApiConexion(String salaId) {
-        this(salaId, PUERTO_DEFECTO);
+        this(salaId, null, PUERTO_DEFECTO);
     }
 
     public ApiConexion(String salaId, int puerto) {
+        this(salaId, null, puerto);
+    }
+
+    /**
+     * New constructor: allow optional juego name so endpoints become
+     * /api/salas/{salaId}/{juego}/eventos and /actualizaciones.
+     * If juego is null, preserves previous behavior.
+     */
+    public ApiConexion(String salaId, String juego, int puerto) {
         this.salaId = validarSalaId(salaId);
-        this.endpointSala = construirEndpointSala(this.salaId);
-        this.endpointActualizacionesSala = construirEndpointActualizacionesSala(this.salaId);
+        this.juego = (juego == null || juego.isBlank()) ? null : juego.trim();
+        this.endpointSala = construirEndpointSala(this.salaId, this.juego);
+        this.endpointActualizacionesSala = construirEndpointActualizacionesSala(this.salaId, this.juego);
         this.puerto = validarPuerto(puerto);
         this.colaEntrante = new ConcurrentLinkedQueue<>();
         this.conectada = false;
@@ -126,13 +137,46 @@ public class ApiConexion implements Conexion<String> {
     }
 
     public static String construirEndpointSala(String salaId) {
-        String salaIdValida = validarSalaId(salaId);
-        return String.format(PLANTILLA_ENDPOINT_SALA, salaIdValida);
+        return construirEndpointSala(salaId, null);
     }
 
     public static String construirEndpointActualizacionesSala(String salaId) {
+        return construirEndpointActualizacionesSala(salaId, null);
+    }
+
+    public static String construirEndpointSala(String salaId, String juego) {
         String salaIdValida = validarSalaId(salaId);
-        return String.format(PLANTILLA_ENDPOINT_ACTUALIZACIONES_SALA, salaIdValida);
+        if (juego == null || juego.isBlank()) {
+            return String.format(PLANTILLA_ENDPOINT_SALA, salaIdValida);
+        }
+
+        // Insert juego segment before the final resource (eventos)
+        // PLANTILLA_ENDPOINT_SALA typically: "/api/salas/%s/eventos"
+        String plantilla = PLANTILLA_ENDPOINT_SALA;
+        if (plantilla.endsWith("/eventos")) {
+            String prefix = plantilla.substring(0, plantilla.length() - "/eventos".length());
+            return String.format(prefix + "/%s/eventos", salaIdValida, juego.trim());
+        }
+
+        // Fallback: try to replace the single %s with sala and append juego
+        String base = String.format(plantilla, salaIdValida);
+        return base.replaceFirst("/eventos$", "" ) + "/" + juego.trim() + "/eventos";
+    }
+
+    public static String construirEndpointActualizacionesSala(String salaId, String juego) {
+        String salaIdValida = validarSalaId(salaId);
+        if (juego == null || juego.isBlank()) {
+            return String.format(PLANTILLA_ENDPOINT_ACTUALIZACIONES_SALA, salaIdValida);
+        }
+
+        String plantilla = PLANTILLA_ENDPOINT_ACTUALIZACIONES_SALA;
+        if (plantilla.endsWith("/actualizaciones")) {
+            String prefix = plantilla.substring(0, plantilla.length() - "/actualizaciones".length());
+            return String.format(prefix + "/%s/actualizaciones", salaIdValida, juego.trim());
+        }
+
+        String base = String.format(plantilla, salaIdValida);
+        return base.replaceFirst("/actualizaciones$", "" ) + "/" + juego.trim() + "/actualizaciones";
     }
 
     private void activarConexionInicial() {
@@ -321,8 +365,10 @@ public class ApiConexion implements Conexion<String> {
             }
 
             try {
-                server = HttpServer.create(new InetSocketAddress(HOST_API, puerto), 0);
-            } catch (IOException error) {
+                    // Bind to wildcard address so endpoints are reachable from outside the JVM/container.
+                    // Using no-host constructor binds to all interfaces.
+                    server = HttpServer.create(new InetSocketAddress(puerto), 0);
+                } catch (IOException error) {
                 throw new IllegalStateException("No se pudo iniciar el servidor temporal de ApiConexion", error);
             }
 

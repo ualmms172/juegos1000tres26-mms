@@ -15,6 +15,15 @@ COMANDO_NOTIFICAR_MUERTE = "NOTIFICAR_MUERTE"
 BACKEND_BASE_URL = os.getenv("SPACE_INVADERS_BACKEND_URL", "http://127.0.0.1:8082/api/pruebas/space-invaders").rstrip("/")
 
 
+def _obtener_sala_id():
+    sala_id = request.args.get("salaId", type=str)
+    if isinstance(sala_id, str) and sala_id.strip():
+        return sala_id.strip()
+
+    sala_id_env = os.getenv("SPACE_INVADERS_SALA_ID", "space-invaders").strip()
+    return sala_id_env or "space-invaders"
+
+
 def _extraer_player_id_desde_query():
     player_id = request.args.get('playerId', type=str)
     if not isinstance(player_id, str) or not player_id.strip():
@@ -70,7 +79,8 @@ def _respuesta_proxy(status_code, body_bytes, _content_type):
 
 @app.route('/')
 def home():
-    return render_template('space_invaders.html')
+    sala_id = _obtener_sala_id()
+    return render_template('space_invaders.html', sala_id=sala_id)
 
 @app.route('/api/score', methods=['GET'])
 def get_score():
@@ -84,7 +94,8 @@ def get_updates():
     if player_id is None:
         return jsonify({"status": "error", "message": "Missing query param 'playerId'"}), 400
 
-    status_code, body_bytes, content_type = _invocar_backend("GET", "/updates", query={"playerId": player_id})
+    query = {"playerId": player_id, "salaId": _obtener_sala_id()}
+    status_code, body_bytes, content_type = _invocar_backend("GET", "/updates", query=query)
     return _respuesta_proxy(status_code, body_bytes, content_type)
 
 
@@ -94,7 +105,9 @@ def procesar_evento():
     if not isinstance(data, dict):
         return jsonify({"status": "error", "message": "Invalid JSON"}), 400
 
-    status_code, body_bytes, content_type = _invocar_backend("POST", "/event", payload=data)
+    payload = dict(data)
+    payload.setdefault("salaId", _obtener_sala_id())
+    status_code, body_bytes, content_type = _invocar_backend("POST", "/event", payload=payload)
     return _respuesta_proxy(status_code, body_bytes, content_type)
 
 

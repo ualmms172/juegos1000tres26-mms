@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { GenericButton } from '../../shared/components/generic-button/generic-button';
 import { Taptap } from '../games/taptap/taptap';
+import { SpaceInvadersComponent } from '../games/space-invaders/space-invaders.component';
+import { PruebaWebSocketComponent } from '../games/prueba-websocket/prueba-websocket.component';
+import { PreguntasComponent } from '../games/preguntas/preguntas.component';
 
 @Component({
   selector: 'app-lobby',
-  imports: [CommonModule, FormsModule, GenericButton, Taptap],
+  imports: [CommonModule, FormsModule, GenericButton, Taptap, PreguntasComponent, SpaceInvadersComponent, PruebaWebSocketComponent],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })
@@ -28,14 +30,11 @@ export class Lobby implements OnInit, OnDestroy {
   esHost = false;
   pantallaNingunoId = 'NINGUNO';
 
-  juegoUrl?: SafeResourceUrl;
-  pantallaUrl?: SafeResourceUrl;
-  private juegoUrlRaw = '';
-  private pantallaUrlRaw = '';
-
   juegosDisponibles = [
     { id: 'space-invaders', nombre: 'Space Invaders' },
-    { id: 'taptap', nombre: 'TapTap' }
+    { id: 'prueba-websocket', nombre: 'Prueba WebSocket' },
+    { id: 'taptap', nombre: 'TapTap' },
+    { id: 'preguntas', nombre: 'Preguntas' }
   ];
 
   private readonly apiBase = 'http://localhost:8083';
@@ -45,8 +44,7 @@ export class Lobby implements OnInit, OnDestroy {
     private readonly http: HttpClient,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly cdr: ChangeDetectorRef,
-    private readonly sanitizer: DomSanitizer
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -215,35 +213,9 @@ export class Lobby implements OnInit, OnDestroy {
     this.pantallaId = respuesta.pantallaId || '';
     this.juegoActual = respuesta.juegoActual || '';
     this.esHost = !!this.jugadorId && this.jugadorId === this.hostId;
-    this.actualizarUrlsJuego();
     this.cdr.detectChanges();
   }
 
-  private actualizarUrlsJuego(): void {
-    if (this.juegoActual !== 'space-invaders' || !this.uuidActual) {
-      this.juegoUrl = undefined;
-      this.pantallaUrl = undefined;
-      this.juegoUrlRaw = '';
-      this.pantallaUrlRaw = '';
-      return;
-    }
-
-    const base = 'http://localhost:5000';
-    const pantallaId = this.uuidActual;
-
-    const juegoUrlRaw = `${base}/`;
-    const pantallaUrlRaw = `${base}/pantalla?screenId=${encodeURIComponent(pantallaId)}`;
-
-    if (juegoUrlRaw !== this.juegoUrlRaw) {
-      this.juegoUrlRaw = juegoUrlRaw;
-      this.juegoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(juegoUrlRaw);
-    }
-
-    if (pantallaUrlRaw !== this.pantallaUrlRaw) {
-      this.pantallaUrlRaw = pantallaUrlRaw;
-      this.pantallaUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pantallaUrlRaw);
-    }
-  }
 
   private iniciarPolling(): void {
     this.polling = interval(3000).subscribe(() => this.actualizarEstado());

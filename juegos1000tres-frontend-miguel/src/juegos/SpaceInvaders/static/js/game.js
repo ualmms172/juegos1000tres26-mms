@@ -157,6 +157,7 @@ let gameState = 'waiting'; // playing, gameover, waiting
 let animationId;
 let playerName = obtenerNombreJugador();
 const playerId = obtenerJugadorIdPersistente();
+const salaId = obtenerSalaId();
 let canalComunicacion = null;
 let posicionRankingActual = null;
 let totalJugadoresConectados = 0;
@@ -169,6 +170,24 @@ function obtenerPrefijoApiSpaceInvaders() {
     }
 
     return '';
+}
+
+function obtenerSalaId() {
+    const params = new URLSearchParams(window.location.search || '');
+    const querySalaId = params.get('salaId');
+    if (typeof querySalaId === 'string' && querySalaId.trim()) {
+        return querySalaId.trim();
+    }
+
+    if (typeof window.SPACE_INVADERS_SALA_ID === 'string' && window.SPACE_INVADERS_SALA_ID.trim()) {
+        return window.SPACE_INVADERS_SALA_ID.trim();
+    }
+
+    return 'space-invaders';
+}
+
+function obtenerClaveStorageJugador() {
+    return `space-invaders-player-id:${salaId}`;
 }
 
 // Game timing (rhythm)
@@ -425,7 +444,7 @@ function obtenerNombreJugador() {
 }
 
 function obtenerJugadorIdPersistente() {
-    const claveStorage = 'space-invaders-player-id';
+    const claveStorage = obtenerClaveStorageJugador();
 
     try {
         const existente = localStorage.getItem(claveStorage);
@@ -631,10 +650,15 @@ function initGame() {
 
     if (!canalComunicacion) {
         const apiBase = obtenerPrefijoApiSpaceInvaders();
-        const conexion = new FetchApiConexion(`${apiBase}/api/event`, `${apiBase}/api/updates`, {
+        const salaSegmento = encodeURIComponent(salaId);
+        const conexion = new FetchApiConexion(
+            `${apiBase}/api/salas/${salaSegmento}/event`,
+            `${apiBase}/api/salas/${salaSegmento}/updates`,
+            {
             playerId,
             pollingIntervalMs: INTERVALO_POLLING_ESTADO_MS,
-        });
+        }
+        );
         const envio = new JsonEnvio();
         const recibo = new JsonRecibo().conEvento(
             COMANDO_ESTADO_JUGADORES,

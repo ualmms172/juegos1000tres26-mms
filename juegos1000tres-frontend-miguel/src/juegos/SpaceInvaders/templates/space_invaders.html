@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="{{ url_for('.static', filename='css/style.css') }}">
 </head>
 <body>
+    <script>
+        window.SPACE_INVADERS_SALA_ID = {{ sala_id | tojson }};
+    </script>
     <div class="game-container">
         <div class="top-scores">
             <div>SCORE&lt;1&gt;<br><br><span id="score1">0000</span></div>

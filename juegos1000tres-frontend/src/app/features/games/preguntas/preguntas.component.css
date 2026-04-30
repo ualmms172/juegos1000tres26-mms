@@ -1,0 +1,69 @@
+.preguntas-root {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #171717 0%, #202020 100%);
+  color: #f4f4f4;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preguntas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.preguntas-header h3 {
+  margin: 0;
+}
+
+.subtitle,
+.message {
+  color: #b7b7b7;
+}
+
+.badge {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.card {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 10px;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+textarea,
+button {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  padding: 0.75rem 0.9rem;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.score-list,
+.options {
+  display: grid;
+  gap: 8px;
+}

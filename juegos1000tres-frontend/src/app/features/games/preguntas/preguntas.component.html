@@ -1,0 +1,46 @@
+<section class="preguntas-root">
+  <header class="preguntas-header">
+    <div>
+      <h3>Preguntas</h3>
+      <p class="subtitle">{{ getNombreFase() }} · Sala {{ uuid || '---' }}</p>
+    </div>
+    <div class="badge" *ngIf="estado.fase === 'RESPONDIENDO'">{{ getTiempoRestanteSegundos() }}s</div>
+  </header>
+
+  <p class="message" *ngIf="estado.mensaje">{{ estado.mensaje }}</p>
+
+  <section class="card" *ngIf="estado.preguntaActual">
+    <strong *ngIf="estado.jugadorElegido">{{ estado.jugadorElegido.nombreJugador }}</strong>
+    <p>{{ estado.preguntaActual }}</p>
+  </section>
+
+  <section class="card" *ngIf="estado.marcador?.length">
+    <h4>Marcador</h4>
+    <ul class="score-list">
+      <li *ngFor="let jugador of estado.marcador">{{ jugador.nombre }} · {{ jugador.puntos }}</li>
+    </ul>
+  </section>
+
+  <section class="card" *ngIf="estado.fase === 'RESPONDIENDO' && !esSoyElegido()">
+    <textarea
+      [(ngModel)]="respuestaLocal"
+      (input)="alActualizarRespuesta(respuestaLocal)"
+      placeholder="Escribe tu respuesta"
+      [disabled]="yaRespondi()"
+    ></textarea>
+    <button type="button" (click)="enviarRespuesta()" [disabled]="!respuestaLocal.trim() || yaRespondi()">Enviar</button>
+  </section>
+
+  <section class="card" *ngIf="estado.fase === 'ELEGIENDO' && esSoyElegido()">
+    <h4>Elegir respuesta</h4>
+    <div class="options">
+      <button type="button" *ngFor="let opcion of estado.opciones" (click)="elegirRespuesta(opcion.opcionId)" [disabled]="!opcion.seleccionable">
+        {{ opcion.texto }}
+      </button>
+    </div>
+  </section>
+
+  <section class="card" *ngIf="esHost && estado.puedeIniciarRonda">
+    <button type="button" (click)="iniciarRonda()">Iniciar ronda</button>
+  </section>
+</section>
