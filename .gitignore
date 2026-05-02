@@ -42,6 +42,14 @@ juegos1000tres-frontend/.env
 juegos1000tres-frontend/.env.*
 !juegos1000tres-frontend/.env.example
 
+# Backend env/secrets
+juegos1000tres-backend/.env
+juegos1000tres-backend/.env.*
+!juegos1000tres-backend/.env.example
+**/secrets/**
+**/*.key
+**/*.pem
+
 # Frontend Python virtual env
 juegos1000tres-frontend/.venv/
 juegos1000tres-frontend/venv/

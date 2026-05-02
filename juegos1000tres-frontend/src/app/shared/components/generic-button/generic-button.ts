@@ -9,7 +9,9 @@ import { RouterLink } from '@angular/router';
   styleUrl: './generic-button.css',
 })
 export class GenericButton {
-  private resolvedColor: 'red' | 'green' | 'gray' = 'gray';
+  private resolvedColor: 'red' | 'green' | 'gray' | 'purple' = 'gray';
+
+  @Input() buttonType: 'button' | 'submit' | 'reset' = 'button';
 
   @Input() link: string | null = null;
 
@@ -17,7 +19,12 @@ export class GenericButton {
   set color(value: string | undefined) {
     const normalized = (value || '').toLowerCase();
 
-    if (normalized === 'red' || normalized === 'green' || normalized === 'gray') {
+    if (
+      normalized === 'red' ||
+      normalized === 'green' ||
+      normalized === 'gray' ||
+      normalized === 'purple'
+    ) {
       this.resolvedColor = normalized;
       return;
     }
@@ -25,7 +32,7 @@ export class GenericButton {
     this.resolvedColor = 'gray';
   }
 
-  get colorClass(): 'red' | 'green' | 'gray' {
+  get colorClass(): 'red' | 'green' | 'gray' | 'purple' {
     return this.resolvedColor;
   }
 }
