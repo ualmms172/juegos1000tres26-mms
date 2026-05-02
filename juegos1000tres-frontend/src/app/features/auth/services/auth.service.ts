@@ -81,12 +81,6 @@ export class AuthService {
     });
   }
 
-  existeNombre(nombre: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.API_URL}/search/existe-nombre`, {
-      params: new HttpParams().set('nombre', nombre)
-    });
-  }
-
   registroDisponible(email: string, nombre: string): Observable<boolean> {
     const params = new HttpParams().set('email', email).set('nombre', nombre);
     return this.http.get<boolean>(`${this.API_URL}/search/registro-disponible`, { params });

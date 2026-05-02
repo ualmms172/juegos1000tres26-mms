@@ -21,9 +21,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @RestResource(path = "existe-email", rel = "existe-email")
     boolean existsByEmail(String email);
 
-    @RestResource(path = "existe-nombre", rel = "existe-nombre")
-    boolean existsByNombre(String nombre);
-
     @RestResource(path = "registro-disponible", rel = "registro-disponible")
     boolean existsByEmailOrNombre(String email, String nombre);
 }
