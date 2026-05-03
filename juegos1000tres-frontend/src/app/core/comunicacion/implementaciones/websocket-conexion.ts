@@ -43,6 +43,10 @@ export class WebSocketConexion implements Conexion<string> {
       return;
     }
 
+    if (this.webSocket?.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+
     try {
       this.webSocket = new WebSocket(this.canalSala);
 

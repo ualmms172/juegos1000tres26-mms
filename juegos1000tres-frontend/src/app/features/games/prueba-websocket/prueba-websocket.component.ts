@@ -33,11 +33,10 @@ export class PruebaWebSocketComponent implements OnInit, OnDestroy {
   private recepcionActiva = false;
   private jugadorPersistente = '';
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.nombreJugador = this.nombreInicial();
     this.jugadorPersistente = this.obtenerJugadorPersistente();
     this.inicializarComunicacion();
-    await this.esperarConexionLista();
     this.iniciarRecepcion();
   }
 
@@ -75,7 +74,7 @@ export class PruebaWebSocketComponent implements OnInit, OnDestroy {
   private inicializarComunicacion(): void {
     const salaId = this.salaId();
     const rol = this.esPantalla ? 'pantalla' : 'jugadores';
-    const canal = `ws://localhost:8091/ws/salas/${encodeURIComponent(salaId)}/${rol}`;
+    const canal = `ws://127.0.0.1:8091/ws/salas/${encodeURIComponent(salaId)}/${rol}`;
 
     const conexion = new WebSocketConexion(salaId, canal);
     const envio = Envio.paraStringDesdeOut();
@@ -90,24 +89,7 @@ export class PruebaWebSocketComponent implements OnInit, OnDestroy {
 
     this.traductor = new Traductor(conexion, envio, recibo);
     this.traductor.conectar();
-    this.estadoConexion = `Conectado a ${rol} de ${salaId}`;
-  }
-
-  private async esperarConexionLista(): Promise<void> {
-    const conexion = this.obtenerConexionWebSocket();
-    const inicio = Date.now();
-
-    while (Date.now() - inicio < 5000) {
-      if (conexion?.estaConectado()) {
-        return;
-      }
-
-      await this.esperar(50);
-    }
-
-    if (conexion && !conexion.estaConectado()) {
-      this.estadoConexion = 'Conectando al WebSocket...';
-    }
+    this.estadoConexion = `Conectando a ${rol} de ${salaId}...`;
   }
 
   private iniciarRecepcion(): void {
@@ -118,6 +100,15 @@ export class PruebaWebSocketComponent implements OnInit, OnDestroy {
 
   private async bucleRecepcion(): Promise<void> {
     while (this.recepcionActiva && this.traductor) {
+      const conexion = this.obtenerConexionWebSocket();
+
+      if (conexion && !conexion.estaConectado()) {
+        this.estadoConexion = 'Reconectando...';
+        this.traductor.conectar();
+        await this.esperar(500);
+        continue;
+      }
+
       try {
         const payload = await this.traductor.recibirPayload();
 
@@ -126,6 +117,7 @@ export class PruebaWebSocketComponent implements OnInit, OnDestroy {
         }
 
         this.traductor.procesar(payload);
+        this.estadoConexion = 'Conectado';
       } catch (error: unknown) {
         if (!this.recepcionActiva) {
           break;

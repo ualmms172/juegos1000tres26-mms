@@ -211,7 +211,13 @@
 
             abrirJuegoNuevaTab.href = urlJuego;
 
-            iniciarJuegoBtn.addEventListener('click', entrarAlJuego);
+            iniciarJuegoBtn.addEventListener('click', function () {
+                if (juegoId === 'prueba_websocket' || juegoId === 'preguntas') {
+                    window.open(urlJuego, '_blank', 'noopener,noreferrer');
+                } else {
+                    entrarAlJuego();
+                }
+            });
             volverSalaBtn.addEventListener('click', function () {
                 volverASalaYMostrarResultado().catch(() => {
                     resultadoTexto.textContent = 'No se pudo obtener el resultado de la partida.';
