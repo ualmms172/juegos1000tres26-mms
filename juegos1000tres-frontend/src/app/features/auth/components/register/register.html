@@ -1,0 +1,55 @@
+<form class="auth-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+	<div class="card-header">
+		<h2>Crear cuenta</h2> <br />
+		<p>Crear tu cuenta e inicia sesión para empezar a jugar.</p>
+	</div>
+
+	<div class="form-grid">
+		<label class="field">
+			<span>Nombre</span>
+			<input
+				type="text"
+				formControlName="nombre"
+				placeholder="Tu nombre"
+				autocomplete="username"
+			/>
+			<p class="field-error" *ngIf="getFieldError('nombre') as nombreError">{{ nombreError }}</p>
+		</label>
+
+		<label class="field">
+			<span>Email</span>
+			<input
+				type="email"
+				formControlName="email"
+				placeholder="tu@email.com"
+				autocomplete="email"
+			/>
+			<p class="field-error" *ngIf="getFieldError('email') as emailError">{{ emailError }}</p>
+		</label>
+
+		<label class="field">
+			<span>Contrasena</span>
+			<input
+				type="password"
+				formControlName="password"
+				placeholder="Crea una contrasena"
+				autocomplete="new-password"
+			/>
+			<p class="field-error" *ngIf="getFieldError('password') as passwordError">{{ passwordError }}</p>
+		</label>
+	</div>
+
+	<p class="form-error" *ngIf="error">{{ error }}</p>
+
+	<div class="button-row">
+		<generic-button color="green" buttonType="submit" [class.disabled]="form.invalid">
+			Registrarme
+		</generic-button>
+	</div>
+
+	<p class="hint">
+		Ya tienes cuenta?
+		<a class="auth-link" routerLink="/login">Inicia sesion</a>
+	</p>
+
+</form>

@@ -9,7 +9,7 @@
 </ng-container>
 
 <ng-template #buttonTemplate>
-	<button class="generic-button" type="button" [ngClass]="colorClass">
+	<button class="generic-button" [attr.type]="buttonType" [ngClass]="colorClass">
 		<ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
 	</button>
 </ng-template>

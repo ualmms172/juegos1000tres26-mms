@@ -1,7 +1,7 @@
 .generic-button {
 	align-items: center;
 	appearance: none;
-	border: none;
+	border: 1px solid #bdbdbd;
 	border-radius: 10px;
 	box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
 	color: #101010;
@@ -31,6 +31,10 @@
 
 .generic-button.green {
 	background: #35d08a;
+}
+
+.generic-button.purple {
+	background: #a855f7;
 }
 
 .generic-button.gray {

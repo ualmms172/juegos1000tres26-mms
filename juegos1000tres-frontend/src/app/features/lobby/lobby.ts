@@ -38,6 +38,7 @@ export class Lobby implements OnInit, OnDestroy {
   ];
 
   private readonly apiBase = 'http://localhost:8083';
+  private readonly requestOptions = { withCredentials: true };
   private polling?: Subscription;
 
   constructor(
@@ -75,7 +76,7 @@ export class Lobby implements OnInit, OnDestroy {
   crearSala(): void {
     this.errorUuid = '';
 
-    this.http.get<SalaRespuesta>(`${this.apiBase}/sala/crear`).subscribe({
+    this.http.get<SalaRespuesta>(`${this.apiBase}/sala/crear`, this.requestOptions).subscribe({
       next: respuesta => this.navegarSala(respuesta),
       error: () => {
         this.errorUuid = 'No se pudo crear la sala';
@@ -94,7 +95,7 @@ export class Lobby implements OnInit, OnDestroy {
 
     this.errorUuid = '';
 
-    this.http.get<SalaRespuesta>(`${this.apiBase}/sala/${uuid}/unirse`).subscribe({
+    this.http.get<SalaRespuesta>(`${this.apiBase}/sala/${uuid}/unirse`, this.requestOptions).subscribe({
       next: respuesta => this.navegarSala(respuesta),
       error: (error: HttpErrorResponse) => {
         if (error.status === 404) {
@@ -123,7 +124,8 @@ export class Lobby implements OnInit, OnDestroy {
     this.http
       .post<SalaRespuesta>(
         `${this.apiBase}/sala/${this.uuidActual}/pantalla?actorId=${actorId}&jugadorId=${jugadorId}`,
-        null
+        null,
+        this.requestOptions
       )
       .subscribe({
         next: respuesta => this.actualizarDatos(respuesta),
@@ -148,7 +150,8 @@ export class Lobby implements OnInit, OnDestroy {
     this.http
       .post<SalaRespuesta>(
         `${this.apiBase}/sala/${this.uuidActual}/juego?actorId=${actorId}&juego=${juegoId}`,
-        null
+        null,
+        this.requestOptions
       )
       .subscribe({
         next: respuesta => this.actualizarDatos(respuesta),
@@ -167,8 +170,12 @@ export class Lobby implements OnInit, OnDestroy {
     const uuid = this.uuidActual;
     const jugadorId = this.jugadorId;
     const request = this.esHost
-      ? this.http.post<void>(`${this.apiBase}/sala/${uuid}/apagar`, null)
-      : this.http.post<void>(`${this.apiBase}/sala/${uuid}/salir?jugadorId=${jugadorId}`, null);
+      ? this.http.post<void>(`${this.apiBase}/sala/${uuid}/apagar`, null, this.requestOptions)
+      : this.http.post<void>(
+          `${this.apiBase}/sala/${uuid}/salir?jugadorId=${jugadorId}`,
+          null,
+          this.requestOptions
+        );
 
     request.subscribe({
       next: () => this.limpiarSesion(),
@@ -193,7 +200,7 @@ export class Lobby implements OnInit, OnDestroy {
       return;
     }
 
-    this.http.get<SalaRespuesta>(`${this.apiBase}/sala/${this.uuidActual}/estado`).subscribe({
+    this.http.get<SalaRespuesta>(`${this.apiBase}/sala/${this.uuidActual}/estado`, this.requestOptions).subscribe({
       next: respuesta => this.actualizarDatos(respuesta),
       error: (error: HttpErrorResponse) => {
         if (error.status === 404) {

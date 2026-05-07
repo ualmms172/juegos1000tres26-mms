@@ -26,6 +26,8 @@ services:
       - "8083:8082"
       - "8081:8081"
       - "8091:8091"
+    env_file:
+      - ./juegos1000tres-backend/.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/juegos1000tres
       SPRING_DATASOURCE_USERNAME: juegos_user

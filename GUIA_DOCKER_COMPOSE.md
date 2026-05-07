@@ -1,5 +1,20 @@
 # Guia rapida: ejecutar con Docker Compose
 
+## 0) Configurar JWT_SECRET (solo desarrolladores)
+
+1) Copia el archivo de ejemplo y crea tu archivo local:
+
+```powershell
+Copy-Item juegos1000tres-backend\.env.example juegos1000tres-backend\.env
+```
+o simplemente haz un .env similar a .env.example
+
+2) Abre `juegos1000tres-backend\.env` y define un valor seguro:
+
+```
+JWT_SECRET=tu_clave_larga_y_aleatoria_de_32_caracteres_o_mas
+```
+
 ## 1) Iniciar todo (PostgreSQL + backend)
 Desde la raiz del proyecto, ejecuta:
 

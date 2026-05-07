@@ -1,2 +1,15 @@
-<generic-button color="red" link="/login">Log in</generic-button>
-<generic-button color="green" link="/sala">Sala</generic-button>
+<div class="home-user" *ngIf="usuario">
+	<span>Jugador:</span>
+	<strong>{{ usuario.nombre }}</strong>
+</div>
+
+<div class="home-actions" *ngIf="!usuario">
+	<generic-button color="purple" link="/login">Iniciar sesión</generic-button>
+	<generic-button color="purple" link="/register">Registrarse</generic-button>
+	<generic-button color="green" (click)="entrarInvitado()">Entrar como invitado</generic-button>
+</div>
+
+<div class="home-actions" *ngIf="usuario">
+	<generic-button color="green" link="/sala">Sala de juegos</generic-button>
+	<generic-button color="gray" (click)="cerrarSesion()">Cerrar sesión</generic-button>
+</div>
