@@ -37,15 +37,21 @@ def create_space_invaders_blueprint(base_dir: str) -> Blueprint:
 
     @blueprint.route("/")
     def space_invaders_home():
-        return render_template("space_invaders.html")
+        sala_id = _obtener_sala_id()
+        return render_template("space_invaders.html", sala_id=sala_id)
 
     @blueprint.route("/pantalla")
     def space_invaders_pantalla():
+        sala_id = _obtener_sala_id()
         screen_id = request.args.get("screenId", type=str)
         if not isinstance(screen_id, str) or not screen_id.strip():
-            screen_id = "pantalla-principal"
+            screen_id = f"{sala_id}-pantalla"
 
-        return render_template("space_invaders_scoreboard.html", screen_id=screen_id.strip())
+        return render_template(
+            "space_invaders_scoreboard.html",
+            screen_id=screen_id.strip(),
+            sala_id=sala_id,
+        )
 
     def _invocar_backend(method, url, payload=None, query=None):
         if query:
@@ -179,3 +185,12 @@ def create_space_invaders_blueprint(base_dir: str) -> Blueprint:
         return jsonify({"status": "error", "message": "Invalid data, Requires 'playerId', 'player' and 'score'"}), 400
 
     return blueprint
+
+
+def _obtener_sala_id() -> str:
+    sala_id = request.args.get("salaId", type=str)
+    if isinstance(sala_id, str) and sala_id.strip():
+        return sala_id.strip()
+
+    sala_id_env = os.getenv("SPACE_INVADERS_SALA_ID", "space-invaders").strip()
+    return sala_id_env or "space-invaders"

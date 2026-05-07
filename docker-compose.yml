@@ -24,6 +24,8 @@ services:
     command: mvn -DskipTests spring-boot:run
     ports:
       - "8083:8082"
+      - "8081:8081"
+      - "8091:8091"
     env_file:
       - ./juegos1000tres-backend/.env
     environment:

@@ -3,6 +3,7 @@ package com.juegos1000tres.juegos1000tres_backend.juegos.Preguntas;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.juegos1000tres.juegos1000tres_backend.comunicacion.Enviable;
@@ -27,7 +28,7 @@ public class PreguntasEstadoEnviable extends Enviable {
     public Object out() {
         try {
             return OBJECT_MAPPER.writeValueAsString(this.estado);
-        } catch (Exception error) {
+        } catch (JsonProcessingException error) {
             throw new IllegalStateException("No se pudo serializar el estado de Preguntas", error);
         }
     }
@@ -45,7 +46,7 @@ public class PreguntasEstadoEnviable extends Enviable {
 
         try {
             this.estado = OBJECT_MAPPER.readValue(json, MAP_TYPE);
-        } catch (Exception error) {
+        } catch (JsonProcessingException error) {
             throw new IllegalArgumentException("No se pudo deserializar el estado de Preguntas", error);
         }
     }

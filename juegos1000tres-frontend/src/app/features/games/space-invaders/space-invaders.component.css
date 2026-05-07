@@ -1,0 +1,20 @@
+.space-invaders-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-height: 640px;
+}
+
+.space-status {
+  color: #dde7ff;
+  font-size: 0.9rem;
+}
+
+.space-game-frame {
+  width: 100%;
+  min-height: 640px;
+  border: 0;
+  border-radius: 12px;
+  background: #000;
+}

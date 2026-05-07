@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="{{ url_for('.static', filename='css/prueba_websocket.css') }}">
 </head>
 <body>
+    <script>
+        window.PRUEBA_WEBSOCKET_SALA_ID = {{ sala_id | tojson }};
+    </script>
     <main class="page">
         <section class="panel">
             <header class="panel-header">

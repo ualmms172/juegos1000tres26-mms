@@ -2,8 +2,8 @@ package com.juegos1000tres.juegos1000tres_backend.juegos.Preguntas;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -280,6 +280,7 @@ public class PreguntasJuego extends Juego {
         Map<String, Object> estado = new LinkedHashMap<>();
         estado.put("comando", COMANDO_ESTADO_PARTIDA);
         estado.put("fase", this.faseRonda.name());
+        estado.put("enCurso", this.enCurso);
         estado.put("rondaActual", this.rondaActual);
         estado.put("mensaje", this.mensajeEstado);
         estado.put("tiempoLimiteRespuestaSegundos", TIEMPO_RESPUESTA_SEGUNDOS);
@@ -311,6 +312,124 @@ public class PreguntasJuego extends Juego {
                                 || this.faseRonda == FaseRonda.MOSTRANDO_RESULTADO));
 
         return new PreguntasEstadoEnviable(estado);
+    }
+
+    public synchronized void registrarJugador(String jugadorId, String nombreJugador) {
+        JugadorInterno jugadorExistente = this.jugadores.get(jugadorId);
+        if (jugadorExistente == null) {
+            this.jugadores.put(jugadorId, new JugadorInterno(jugadorId, nombreJugador));
+        } else {
+            jugadorExistente.setNombre(nombreJugador);
+        }
+
+        long ahoraMs = System.currentTimeMillis();
+        if (this.faseRonda == FaseRonda.ESPERANDO_JUGADORES && this.jugadores.size() >= 2) {
+            iniciarNuevaRondaInterna(ahoraMs);
+        } else if (this.jugadores.size() < 2) {
+            this.mensajeEstado = "Esperando al menos 2 jugadores para iniciar";
+        }
+    }
+
+    public synchronized void iniciarRonda() {
+        long ahoraMs = System.currentTimeMillis();
+        if (this.jugadores.size() < 2) {
+            this.faseRonda = FaseRonda.ESPERANDO_JUGADORES;
+            this.enCurso = false;
+            this.mensajeEstado = "Se necesitan al menos 2 jugadores";
+            return;
+        }
+
+        if (this.faseRonda == FaseRonda.RESPONDIENDO || this.faseRonda == FaseRonda.ELEGIENDO) {
+            return;
+        }
+
+        iniciarNuevaRondaInterna(ahoraMs);
+    }
+
+    public synchronized void actualizarBorrador(String jugadorId, String texto) {
+        if (this.faseRonda != FaseRonda.RESPONDIENDO) {
+            return;
+        }
+
+        if (!this.respondedoresEsperados.contains(jugadorId)) {
+            return;
+        }
+
+        this.borradoresPorJugador.put(jugadorId, sanitizarRespuesta(texto));
+    }
+
+    public synchronized void enviarRespuesta(String jugadorId, String respuesta) {
+        if (this.faseRonda != FaseRonda.RESPONDIENDO) {
+            return;
+        }
+
+        if (Objects.equals(jugadorId, this.jugadorElegidoId)) {
+            throw new IllegalArgumentException("El jugador elegido no debe responder");
+        }
+
+        if (!this.respondedoresEsperados.contains(jugadorId)) {
+            return;
+        }
+
+        this.borradoresPorJugador.put(jugadorId, sanitizarRespuesta(respuesta));
+        this.respuestasConfirmadas.add(jugadorId);
+
+        long ahoraMs = System.currentTimeMillis();
+        if (todasLasRespuestasConfirmadas() || ahoraMs >= this.deadlineRespuestasEpochMs) {
+            cerrarFaseRespuestasInterna(ahoraMs);
+        }
+    }
+
+    public synchronized void elegirRespuesta(String jugadorId, String opcionId) {
+        if (this.faseRonda != FaseRonda.ELEGIENDO) {
+            throw new IllegalStateException("No hay una ronda en fase de eleccion");
+        }
+
+        if (!Objects.equals(jugadorId, this.jugadorElegidoId)) {
+            throw new IllegalArgumentException("Solo el jugador elegido puede seleccionar una opcion");
+        }
+
+        OpcionInterna opcionSeleccionada = null;
+        for (OpcionInterna opcion : this.opcionesActuales) {
+            if (opcion.opcionId.equals(opcionId)) {
+                opcionSeleccionada = opcion;
+                break;
+            }
+        }
+
+        if (opcionSeleccionada == null) {
+            throw new IllegalArgumentException("La opcion seleccionada no existe");
+        }
+
+        if (!opcionSeleccionada.seleccionable) {
+            throw new IllegalArgumentException("No se puede seleccionar una respuesta vacia");
+        }
+
+        this.opcionGanadoraId = opcionSeleccionada.opcionId;
+        JugadorInterno ganador = this.jugadores.get(opcionSeleccionada.autorJugadorId);
+        if (ganador != null) {
+            ganador.puntos += 1;
+        }
+
+        this.faseRonda = FaseRonda.MOSTRANDO_RESULTADO;
+        this.proximaRondaEpochMs = System.currentTimeMillis() + DEMORA_SIGUIENTE_RONDA_MS;
+        this.mensajeEstado = ganador == null
+                ? "Respuesta seleccionada"
+                : "Punto para " + ganador.nombre;
+    }
+
+    public synchronized String obtenerGanadorRonda() {
+        if (this.opcionGanadoraId == null) {
+            return null;
+        }
+
+        for (OpcionInterna opcion : this.opcionesActuales) {
+            if (Objects.equals(opcion.opcionId, this.opcionGanadoraId)) {
+                return opcion.autorJugadorId;
+            }
+        }
+
+        return null;
     }
 
     public synchronized Set<String> getJugadoresRegistradosIds() {
@@ -515,7 +634,7 @@ public class PreguntasJuego extends Juego {
             return data;
         } catch (IllegalArgumentException error) {
             throw error;
-        } catch (Exception error) {
+        } catch (java.io.IOException error) {
             throw new IllegalArgumentException("No se pudo interpretar el payload de " + comandoEsperado, error);
         }
     }

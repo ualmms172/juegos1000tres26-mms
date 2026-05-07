@@ -1,0 +1,10 @@
+<div class="space-invaders-root">
+  <div class="space-status">{{ estadoConexion }}</div>
+  <iframe
+    *ngIf="gameUrl"
+    class="space-game-frame"
+    [src]="gameUrl"
+    title="Space Invaders"
+    allowfullscreen
+  ></iframe>
+</div>

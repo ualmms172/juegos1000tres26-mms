@@ -1,0 +1,169 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ApiConexion, Envio, Recibo, Traductor } from '../../../core/comunicacion';
+import { PreguntasEstadoEnviable, PreguntasEstadoEvento } from './comunicacion';
+import { EstadoPreguntas } from './modelos';
+
+@Injectable()
+export class PreguntasService {
+  private readonly baseApi = 'http://localhost:8083';
+  private traductor: Traductor<string> | null = null;
+  private salaActual = '';
+  private estadoActual$ = new BehaviorSubject<Partial<EstadoPreguntas>>({});
+  private sincronizacionHandle: ReturnType<typeof setInterval> | null = null;
+
+  getEstado$(): Observable<Partial<EstadoPreguntas>> {
+    return this.estadoActual$.asObservable();
+  }
+
+  inicializar(uuid: string): void {
+    if (!uuid || uuid.trim() === '') {
+      throw new Error('El uuid de la sala es obligatorio');
+    }
+
+    this.desconectar();
+    this.salaActual = uuid.trim();
+
+    const base = `${this.baseApi}/sala/${encodeURIComponent(this.salaActual)}/juego/preguntas`;
+    const conexion = new ApiConexion(this.salaActual, base, {
+      urlRecepcion: `${base}/estado`,
+      resolverPeticion: (payload: string) => this.resolverPeticion(payload, base),
+    });
+
+    const envio = Envio.paraStringDesdeOut();
+    const recibo = new Recibo(String, Recibo.extractorComandoDesdeJson())
+      .conEvento('ESTADO_PREGUNTAS', new PreguntasEstadoEvento((estado) => this.estadoActual$.next(estado)))
+      .conEvento('ESTADO', new PreguntasEstadoEvento((estado) => this.estadoActual$.next(estado)));
+
+    this.traductor = new Traductor(conexion, envio, recibo);
+    this.traductor.conectar();
+
+    this.sincronizarEstado();
+    this.iniciarSincronizacionPeriodica();
+  }
+
+  registrarJugador(jugadorId: string, nombreJugador: string): void {
+    this.enviarComando({
+      comando: 'REGISTRAR_JUGADOR',
+      jugadorId,
+      nombreJugador,
+    });
+  }
+
+  iniciarRonda(actorId: string): void {
+    this.enviarComando({
+      comando: 'INICIAR_RONDA',
+      actorId,
+    });
+  }
+
+  actualizarBorrador(texto: string, jugadorId: string): void {
+    this.enviarComando({
+      comando: 'ACTUALIZAR_BORRADOR',
+      texto,
+      jugadorId,
+    });
+  }
+
+  enviarRespuesta(jugadorId: string, respuesta: string): void {
+    this.enviarComando({
+      comando: 'ENVIAR_RESPUESTA',
+      jugadorId,
+      respuesta,
+    });
+  }
+
+  elegirRespuesta(jugadorId: string, opcionId: string): void {
+    this.enviarComando({
+      comando: 'ELEGIR_RESPUESTA',
+      jugadorId,
+      opcionId,
+    });
+  }
+
+  finalizarPartida(actorId: string): void {
+    this.enviarComando({
+      comando: 'FINALIZAR',
+      actorId,
+    });
+  }
+
+  desconectar(): void {
+    if (this.sincronizacionHandle !== null) {
+      clearInterval(this.sincronizacionHandle);
+      this.sincronizacionHandle = null;
+    }
+
+    this.traductor?.desconectar();
+    this.traductor = null;
+    this.salaActual = '';
+  }
+
+  private enviarComando(datos: Record<string, unknown>): void {
+    if (!this.traductor) {
+      throw new Error('El juego Preguntas no está inicializado');
+    }
+
+    this.traductor.enviar(new PreguntasEstadoEnviable(datos));
+  }
+
+  private resolverPeticion(payload: string, base: string): { url: string; body?: string } {
+    const datos = JSON.parse(payload) as Record<string, unknown>;
+    const comando = String(datos['comando'] ?? '').toUpperCase();
+
+    switch (comando) {
+      case 'REGISTRAR_JUGADOR':
+        return {
+          url: `${base}/registrar?jugadorId=${encodeURIComponent(String(datos['jugadorId'] ?? ''))}&nombre=${encodeURIComponent(String(datos['nombreJugador'] ?? datos['nombre'] ?? 'Jugador'))}`,
+        };
+      case 'INICIAR_RONDA':
+        return {
+          url: `${base}/iniciar-ronda?actorId=${encodeURIComponent(String(datos['actorId'] ?? datos['jugadorId'] ?? ''))}`,
+        };
+      case 'ACTUALIZAR_BORRADOR':
+        return {
+          url: `${base}/actualizar-borrador?jugadorId=${encodeURIComponent(String(datos['jugadorId'] ?? ''))}`,
+          body: JSON.stringify({ texto: String(datos['texto'] ?? '') }),
+        };
+      case 'ENVIAR_RESPUESTA':
+        return {
+          url: `${base}/enviar-respuesta?jugadorId=${encodeURIComponent(String(datos['jugadorId'] ?? ''))}`,
+          body: JSON.stringify({ respuesta: String(datos['respuesta'] ?? '') }),
+        };
+      case 'ELEGIR_RESPUESTA':
+        return {
+          url: `${base}/elegir-respuesta?jugadorId=${encodeURIComponent(String(datos['jugadorId'] ?? ''))}&opcionId=${encodeURIComponent(String(datos['opcionId'] ?? ''))}`,
+        };
+      case 'FINALIZAR':
+        return {
+          url: `${base}/finalizar?actorId=${encodeURIComponent(String(datos['actorId'] ?? datos['jugadorId'] ?? ''))}`,
+        };
+      default:
+        return { url: base };
+    }
+  }
+
+  private sincronizarEstado(): void {
+    if (!this.traductor) {
+      return;
+    }
+
+    void Promise.resolve(this.traductor.recibirPayload())
+      .then((payload) => {
+        if (typeof payload === 'string' && payload.trim()) {
+          this.traductor?.procesar(payload);
+        }
+      })
+      .catch(() => {
+        // el backend puede tardar en publicar el estado inicial
+      });
+  }
+
+  private iniciarSincronizacionPeriodica(): void {
+    if (this.sincronizacionHandle !== null) {
+      clearInterval(this.sincronizacionHandle);
+    }
+
+    this.sincronizacionHandle = setInterval(() => this.sincronizarEstado(), 1000);
+  }
+}

@@ -22,17 +22,23 @@ public class WebSocketConexion implements Conexion<String> {
     private static final String PAYLOAD_VACIO = ComunicacionRuntimeConfig.websocketPayloadVacio();
 
     private final String salaId;
+    private final String juego; // optional game name segment
     private final String canalSala;
     private final int puerto;
     private volatile boolean conectada;
 
     public WebSocketConexion(String salaId) {
-        this(salaId, PUERTO_DEFECTO);
+        this(salaId, null, PUERTO_DEFECTO);
     }
 
     public WebSocketConexion(String salaId, int puerto) {
+        this(salaId, null, puerto);
+    }
+
+    public WebSocketConexion(String salaId, String juego, int puerto) {
         this.salaId = validarSalaId(salaId);
-        this.canalSala = construirCanalSala(this.salaId);
+        this.juego = (juego == null || juego.isBlank()) ? null : juego.trim();
+        this.canalSala = construirCanalSala(this.salaId, this.juego);
         this.puerto = validarPuerto(puerto);
         this.conectada = false;
         activarConexionInicial();
@@ -110,7 +116,25 @@ public class WebSocketConexion implements Conexion<String> {
     }
 
     private static String construirCanalSala(String salaId) {
-        return String.format(PLANTILLA_CANAL_SALA, validarSalaId(salaId));
+        return construirCanalSala(salaId, null);
+    }
+
+    private static String construirCanalSala(String salaId, String juego) {
+        String salaValida = validarSalaId(salaId);
+        if (juego == null || juego.isBlank()) {
+            return String.format(PLANTILLA_CANAL_SALA, salaValida);
+        }
+
+        String plantilla = PLANTILLA_CANAL_SALA;
+        if (plantilla.endsWith("/%s")) {
+            // if template like /ws/salas/%s -> produce /ws/salas/{sala}/{juego}
+            String prefix = plantilla.substring(0, plantilla.length() - "%s".length());
+            return String.format(prefix + "%s", salaValida + "/" + juego.trim());
+        }
+
+        // Default fallback: append juego segment
+        String base = String.format(plantilla, salaValida);
+        return base + "/" + juego.trim();
     }
 
     private static String validarSalaId(String salaId) {

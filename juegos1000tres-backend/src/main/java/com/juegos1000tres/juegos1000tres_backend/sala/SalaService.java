@@ -1,20 +1,29 @@
 package com.juegos1000tres.juegos1000tres_backend.sala;
 
-import com.juegos1000tres.juegos1000tres_backend.modelos.Jugador;
-import com.juegos1000tres.juegos1000tres_backend.modelos.Pantalla;
-import com.juegos1000tres.juegos1000tres_backend.modelos.Sala;
-import org.springframework.stereotype.Service;
-
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.stereotype.Service;
+
+import com.juegos1000tres.juegos1000tres_backend.modelos.Jugador;
+import com.juegos1000tres.juegos1000tres_backend.modelos.Pantalla;
+import com.juegos1000tres.juegos1000tres_backend.modelos.Sala;
+import com.juegos1000tres.juegos1000tres_backend.juegos.PruebaWebSocket.PruebaWebSocketManager;
 
 @Service
 public class SalaService {
 
     private final Map<String, SalaRoom> salas = new ConcurrentHashMap<>();
     private final SecureRandom random = new SecureRandom();
+    private final JuegoManager juegoManager;
+    private final PruebaWebSocketManager pruebaWebSocketManager;
+
+    public SalaService(JuegoManager juegoManager, PruebaWebSocketManager pruebaWebSocketManager) {
+        this.juegoManager = juegoManager;
+        this.pruebaWebSocketManager = pruebaWebSocketManager;
+    }
 
     public SalaRespuesta crearSala() {
         String uuid = generarIdUnico();
@@ -51,12 +60,32 @@ public class SalaService {
         SalaRoom room = obtenerSala(uuid);
         room.cambiarJuego(actorId, juego);
 
+        try {
+            if ("prueba-websocket".equalsIgnoreCase(juego)) {
+                this.pruebaWebSocketManager.crearInstanciaParaSala(uuid);
+            } else {
+                this.juegoManager.crearInstanciaJuego(uuid, juego);
+            }
+        } catch (RuntimeException ex) {
+            // no bloquear la respuesta por errores internos del manager
+        }
+
         return construirRespuesta(room, null);
     }
 
     public void finalizarJuego(String uuid, String actorId) {
         SalaRoom room = obtenerSala(uuid);
+        String juegoAntes = room.getJuegoActual();
         room.finalizarJuego(actorId);
+        try {
+            if ("prueba-websocket".equalsIgnoreCase(juegoAntes)) {
+                this.pruebaWebSocketManager.detenerInstanciaParaSala(uuid);
+            } else {
+                this.juegoManager.detenerInstancia(uuid, juegoAntes);
+            }
+        } catch (RuntimeException ex) {
+            // ignore
+        }
     }
 
     public void incrementarVictoria(String uuid, String jugadorId) {

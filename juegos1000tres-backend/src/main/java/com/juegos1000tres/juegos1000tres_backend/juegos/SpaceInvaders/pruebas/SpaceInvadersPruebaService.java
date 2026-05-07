@@ -19,7 +19,7 @@ import jakarta.annotation.PreDestroy;
 @Service
 public class SpaceInvadersPruebaService {
 
-    private static final String SALA_ID_SPACE_INVADERS = "space-invaders";
+    private static final String SALA_ID_SPACE_INVADERS = System.getenv().getOrDefault("SPACE_INVADERS_SALA_ID", "space-invaders");
     private static final String PAYLOAD_VACIO = "{}";
     private static final long SLEEP_MS = 40L;
 

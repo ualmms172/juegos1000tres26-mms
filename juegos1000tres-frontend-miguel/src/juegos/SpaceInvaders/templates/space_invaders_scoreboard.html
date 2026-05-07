@@ -99,6 +99,10 @@
         </table>
     </section>
 
+    <script>
+        window.SPACE_INVADERS_SALA_ID = {{ sala_id | tojson }};
+        window.SPACE_INVADERS_SCREEN_ID = {{ screen_id | tojson }};
+    </script>
     <script type="module">
         import {
             FetchApiConexion,

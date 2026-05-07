@@ -14,7 +14,7 @@ app = Flask(__name__)
 COMANDO_ACTUALIZAR_PUNTUACION = "ACTUALIZAR_PUNTUACION"
 COMANDO_NOTIFICAR_MUERTE = "NOTIFICAR_MUERTE"
 
-BACKEND_BASE_URL = os.getenv("SPACE_INVADERS_BACKEND_URL", "http://127.0.0.1:8082/api/pruebas/space-invaders").rstrip("/")
+BACKEND_BASE_URL = os.getenv("SPACE_INVADERS_BACKEND_URL", "http://127.0.0.1:8083/api/pruebas/space-invaders").rstrip("/")
 
 _jugadores_estado = {}
 

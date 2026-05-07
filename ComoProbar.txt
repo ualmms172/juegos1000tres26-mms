@@ -1,190 +1,117 @@
-COMO PROBAR (Windows / PowerShell)
-==================================
+COMO PROBAR (Angular + Docker Backend/BD)
+=========================================
 
 Objetivo
 --------
-Levantar backend + frontend y probar la sala compartida donde puedes elegir:
-1) Space Invaders
-2) Prueba WebSocket
+Levantar rapidamente:
+1) Backend Spring + PostgreSQL con Docker Compose
+2) Frontend Angular en local
 
-Importante
+Este documento refleja el flujo ACTUAL del proyecto (sin frontend historico Flask).
+
+
+Requisitos
 ----------
-Este backend de pruebas NO necesita base de datos.
-Ya esta configurado para arrancar sin DataSource/JPA.
+- Docker Desktop encendido
+- Node.js y npm instalados
 
 
-LANZAMIENTO RAPIDO (COPY/PASTE)
+Lanzamiento rapido (copy/paste)
 -------------------------------
-Usa exactamente estos comandos en este orden.
+Ejecuta exactamente estos comandos en este orden.
 
-TERMINAL A (backend):
-cd .\juegos1000tres-backend
-.\mvnw.cmd spring-boot:run
+TERMINAL A (backend + bd con Docker):
+cd .
+docker compose up --build -d
+docker compose ps
 
-TERMINAL B (frontend):
+TERMINAL B (frontend Angular):
 cd .\juegos1000tres-frontend
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python .\main.py
+npm install
+npm start
 
-Luego abre la URL que imprime la consola del frontend:
-- URL: http://localhost:<PUERTO_FRONTEND>
-- Sala: http://localhost:<PUERTO_FRONTEND>/pruebas/sala-mentira
-
-Si algo falla por puertos ocupados, ejecuta primero el paso 0 y repite.
+Abrir en navegador:
+- Frontend: http://localhost:4200
+- Backend (host): http://localhost:8083
 
 
-0) Limpiar puertos si hubo ejecuciones previas
-----------------------------------------------
-Ejecuta esto en PowerShell (desde cualquier carpeta):
+1) Levantar backend + base de datos (Docker)
+---------------------------------------------
+Desde la raiz del repo:
 
-function Stop-PortProcess($port) {
-	$connections = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
-	if ($null -ne $connections) {
-		$connections |
-			Select-Object -ExpandProperty OwningProcess -Unique |
-			ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
-	}
-}
+docker compose up --build -d
 
-Stop-PortProcess 8080
-Stop-PortProcess 8081
-Stop-PortProcess 8082
-Stop-PortProcess 8091
+Verificar estado:
 
-Notas:
-- 8080: frontend Flask
-- 8081: API runtime interna (ApiConexion)
-- 8082: backend Spring
-- 8091: servidor WebSocket interno del backend
+docker compose ps
 
-Nota adicional:
-- Si 8080 esta ocupado, el frontend elegira automaticamente: 8085, 8090 o 5000.
+Debes ver:
+- juegos1000tres-postgres (healthy)
+- juegos1000tres-backend-app (running)
+
+Puertos usados por Docker Compose:
+- PostgreSQL: 5432
+- Backend host: 8083 (mapeado al 8082 interno del contenedor)
 
 
-1) Levantar backend (Java/Spring)
----------------------------------
-Abrir una terminal en la raiz del proyecto:
-
-cd .\juegos1000tres-backend
-.\mvnw.cmd spring-boot:run
-
-Comprobar que responde:
-(Test-NetConnection 127.0.0.1 -Port 8082).TcpTestSucceeded
-(Test-NetConnection 127.0.0.1 -Port 8091).TcpTestSucceeded
-
-Debe devolver:
-True
-True
-
-Criterio de exito del backend:
-- Si ves en consola "Tomcat started on port 8082" y "Started Juegos1000tresBackendApplication", el backend esta OK.
-- Deja esa terminal abierta mientras pruebas el frontend.
-
-
-2) Levantar frontend (Flask)
+2) Levantar frontend Angular
 ----------------------------
-Abrir OTRA terminal en la raiz del proyecto:
+En otra terminal:
 
 cd .\juegos1000tres-frontend
+npm install
+npm start
 
-Si estas ubicado en .\juegos1000tres-backend, usa:
-cd ..\juegos1000tres-frontend
+Angular queda en:
+- http://localhost:4200
 
-Si es la primera vez:
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+Si el 4200 esta ocupado:
 
-Si ya tienes el entorno creado:
-.\.venv\Scripts\Activate.ps1
-
-Ejecutar frontend:
-python .\main.py
-
-El frontend queda en el puerto que muestre la consola (URL: ...).
-Normalmente sera 8080; si esta ocupado, usara 8085/8090/5000.
+ng serve --port 4201
 
 
-3) Probar la sala compartida (seleccion de juego + rol)
--------------------------------------------------------
-Abrir en navegador usando el puerto real del frontend:
-http://127.0.0.1:<PUERTO_FRONTEND>/pruebas/sala-mentira
-
-En la pantalla de entrada:
-1) Escribe nombre.
-2) Elige juego (Space Invaders o Prueba WebSocket).
-3) Elige tipo de cliente (Jugador o Pantalla compartida).
-4) Pulsa "Entrar a la sala".
-
-Dentro de la sala:
-1) Pulsa "Iniciar juego" o "Iniciar pantalla compartida".
-2) Si quieres otro cliente, abre otra pestana en la misma URL de la sala y entra con otro nombre/rol.
-3) Puedes usar "Cambiar nombre o juego" para volver y elegir otro juego desde la misma sala.
+3) Prueba funcional minima
+--------------------------
+1. Abre el frontend en http://localhost:4200
+2. Crea sala o unete a una sala existente.
+3. Inicia cada juego desde el lobby:
+   - Space Invaders
+   - Prueba WebSocket
+   - Preguntas
+4. Verifica que cada juego carga en Angular (sin iframes).
 
 
-4) Flujo recomendado para Space Invaders
-----------------------------------------
-1) Ventana A: entra como Jugador, juego = Space Invaders.
-2) Ventana B: entra como Pantalla compartida, juego = Space Invaders.
-3) Inicia ambos y juega.
-4) Al volver a la sala del jugador, se muestra el estado/resultado de partida.
+4) Comandos utiles
+------------------
+Ver logs del backend:
+
+docker compose logs -f backend
+
+Ver logs de postgres:
+
+docker compose logs -f postgres
+
+Reiniciar solo backend:
+
+docker compose restart backend
+
+Parar todo:
+
+docker compose down
+
+Parar todo y borrar volumen de BD:
+
+docker compose down -v
 
 
-5) Flujo recomendado para Prueba WebSocket
-------------------------------------------
-1) Ventana A: entra como Jugador, juego = Prueba WebSocket.
-2) Ventana B: entra como Pantalla compartida, juego = Prueba WebSocket.
-3) En Jugador, escribe textos y pulsa Enviar.
-4) Verifica:
-   - En Jugador aparece el historial global (sin autor).
-   - En Pantalla aparece la lista de jugadores y sus palabras.
+5) Problemas comunes
+--------------------
+Si backend no arranca, revisa logs:
 
+docker compose logs -f backend
 
-6) Comprobaciones rapidas (URLs directas)
------------------------------------------
-Hub/menu:
-http://127.0.0.1:<PUERTO_FRONTEND>/
+Si frontend no conecta al backend:
+- confirma que backend este arriba en puerto 8083
+- confirma que el frontend este en 4200 y sin errores de compilacion
 
-Sala compartida:
-http://127.0.0.1:<PUERTO_FRONTEND>/pruebas/sala-mentira
-
-Space Invaders jugador:
-http://127.0.0.1:<PUERTO_FRONTEND>/server/space_invaders
-
-Space Invaders pantalla:
-http://127.0.0.1:<PUERTO_FRONTEND>/server/space_invaders/pantalla
-
-Prueba WebSocket jugador:
-http://127.0.0.1:<PUERTO_FRONTEND>/server/prueba_websocket
-
-Prueba WebSocket pantalla:
-http://127.0.0.1:<PUERTO_FRONTEND>/server/prueba_websocket/pantalla
-
-
-7) Variables de entorno opcionales
-----------------------------------
-Solo si necesitas usar endpoints/hosts distintos de los valores por defecto.
-
-En la terminal del frontend, antes de python .\main.py:
-
-$env:SPACE_INVADERS_BACKEND_EVENT_URL="http://127.0.0.1:8081/api/salas/space-invaders/eventos"
-$env:SPACE_INVADERS_BACKEND_UPDATES_URL="http://127.0.0.1:8081/api/salas/space-invaders/actualizaciones"
-$env:PREGUNTAS_BACKEND_EVENT_URL="http://127.0.0.1:8081/api/salas/preguntas/eventos"
-$env:PREGUNTAS_BACKEND_UPDATES_URL="http://127.0.0.1:8081/api/salas/preguntas/actualizaciones"
-$env:PRUEBA_WEBSOCKET_WS_JUGADORES_URL="ws://127.0.0.1:8091/ws/salas/prueba-websocket-jugadores"
-$env:PRUEBA_WEBSOCKET_WS_PANTALLA_URL="ws://127.0.0.1:8091/ws/salas/prueba-websocket-pantalla"
-
-
-8) Error comun y solucion rapida
---------------------------------
-Si aparece "Port 8082 was already in use" o "Address already in use",
-vuelve al paso 0 (limpiar puertos) y arranca de nuevo backend y frontend.
-
-Si aparece al final "Process terminated with exit code: -1" despues de haber arrancado bien:
-- Suele significar que el proceso fue detenido externamente (terminal cerrada/cancelada).
-- Solucion: vuelve a lanzar .\mvnw.cmd spring-boot:run y deja la terminal abierta.
-
-Si quieres forzar un puerto especifico para el frontend:
-$env:ARCADE_HUB_PORT="8085"
-python .\main.py
+Si hay puertos ocupados, cierra procesos previos y vuelve a lanzar.
