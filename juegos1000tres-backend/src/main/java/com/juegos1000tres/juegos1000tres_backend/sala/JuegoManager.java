@@ -10,6 +10,9 @@ import com.juegos1000tres.juegos1000tres_backend.comunicacion.Envio;
 import com.juegos1000tres.juegos1000tres_backend.comunicacion.Recibo;
 import com.juegos1000tres.juegos1000tres_backend.comunicacion.Traductor;
 import com.juegos1000tres.juegos1000tres_backend.juegos.SpaceInvaders.SpaceInvader;
+import com.juegos1000tres.juegos1000tres_backend.juegos.Preguntas.PreguntasJuego;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Gestiona instancias de juegos por sala. 
@@ -46,6 +49,31 @@ public class JuegoManager {
             Recibo<String> reciboConEventos = juegoInstancia.registrarEventosEnRecibo(Recibo.paraJsonString());
 
             // Paso 4: Construir el Traductor definitivo con los eventos correctamente registrados.
+            Traductor<String> traductor = new Traductor<>(
+                new InMemoryConexion(),
+                Envio.paraStringDesdeOut(),
+                reciboConEventos
+            );
+
+            GameInstance gi = new GameInstance(juegoInstancia, traductor);
+            instances.put(key, gi);
+        } else if ("preguntas".equalsIgnoreCase(juego)) {
+            Recibo<String> reciboBase = Recibo.paraJsonString();
+            Traductor<String> placeholder = new Traductor<>(
+                new InMemoryConexion(),
+                Envio.paraStringDesdeOut(),
+                reciboBase
+            );
+
+            List<String> preguntasDefault = new ArrayList<>();
+            preguntasDefault.add("Cual es el color favorito de [NOMBRE_JUGADOR]?");
+            preguntasDefault.add("Que prefiere [NOMBRE_JUGADOR], playa o montana?");
+
+            PreguntasJuego juegoInstancia = new PreguntasJuego(2, placeholder, placeholder, preguntasDefault);
+            juegoInstancia.iniciar();
+
+            Recibo<String> reciboConEventos = juegoInstancia.registrarEventosEnRecibo(Recibo.paraJsonString());
+
             Traductor<String> traductor = new Traductor<>(
                 new InMemoryConexion(),
                 Envio.paraStringDesdeOut(),
@@ -109,10 +137,10 @@ public class JuegoManager {
     }
 
     private static final class GameInstance {
-        final SpaceInvader juego;
+        final com.juegos1000tres.juegos1000tres_backend.modelos.Juego juego;
         final Traductor<String> traductor;
 
-        GameInstance(SpaceInvader juego, Traductor<String> traductor) {
+        GameInstance(com.juegos1000tres.juegos1000tres_backend.modelos.Juego juego, Traductor<String> traductor) {
             this.juego = juego;
             this.traductor = traductor;
         }
